@@ -7,11 +7,11 @@ app.use(express.json());
 app.use(express.static('.'));
 
 const db = mysql.createPool({
-  host: 'kodama.proxy.rlwy.net',
-  port: 48095,
-  user: 'root',
-  password: 'RQnEDOLRVYIVeeFfSoNGIzQStFgeMSCt',
-  database: 'railway',
+  host: process.env.MYSQLHOST || 'kodama.proxy.rlwy.net',
+  port: process.env.MYSQLPORT || 48095,
+  user: process.env.MYSQLUSER || 'root',
+  password: process.env.MYSQLPASSWORD || 'RQnEDOLRVYIVeeFfSoNGIzQStFgeMSCt',
+  database: process.env.MYSQLDATABASE || 'railway',
   waitForConnections: true
 });
 
@@ -36,125 +36,165 @@ app.get('/install', async (req, res) => {
 
 // CATEGORIE
 app.get('/api/categorie', async (req, res) => {
-  const [rows] = await db.query('SELECT * FROM categorie ORDER BY nome');
-  res.json(rows);
+  try {
+    const [rows] = await db.query('SELECT * FROM categorie ORDER BY nome');
+    res.json(rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/categorie', async (req, res) => {
-  const { nome } = req.body;
-  const [r] = await db.query('INSERT INTO categorie (nome) VALUES (?)', [nome]);
-  res.json({ id: r.insertId, nome });
+  try {
+    const { nome } = req.body;
+    const [r] = await db.query('INSERT INTO categorie (nome) VALUES (?)', [nome]);
+    res.json({ id: r.insertId, nome });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.delete('/api/categorie/:id', async (req, res) => {
-  await db.query('DELETE FROM categorie WHERE id=?', [req.params.id]);
-  res.json({ deleted: req.params.id });
+  try {
+    await db.query('DELETE FROM categorie WHERE id=?', [req.params.id]);
+    res.json({ deleted: req.params.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // GIOCATORI
 app.get('/api/giocatori', async (req, res) => {
-  const { categoria_id } = req.query;
-  const [rows] = categoria_id
-    ? await db.query('SELECT * FROM giocatori WHERE categoria_id=? ORDER BY nome_cognome', [categoria_id])
-    : await db.query('SELECT * FROM giocatori ORDER BY nome_cognome');
-  res.json(rows);
+  try {
+    const { categoria_id } = req.query;
+    const [rows] = categoria_id
+      ? await db.query('SELECT * FROM giocatori WHERE categoria_id=? ORDER BY nome_cognome', [categoria_id])
+      : await db.query('SELECT * FROM giocatori ORDER BY nome_cognome');
+    res.json(rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/giocatori', async (req, res) => {
-  const { categoria_id, nome_cognome, anno_nascita, ruolo, telefono_genitore, note } = req.body;
-  const [r] = await db.query('INSERT INTO giocatori (categoria_id,nome_cognome,anno_nascita,ruolo,telefono_genitore,note) VALUES (?,?,?,?,?,?)', [categoria_id, nome_cognome, anno_nascita||null, ruolo||'Da assegnare', telefono_genitore||null, note||null]);
-  res.json({ id: r.insertId });
+  try {
+    const { categoria_id, nome_cognome, anno_nascita, ruolo, telefono_genitore, note } = req.body;
+    const [r] = await db.query('INSERT INTO giocatori (categoria_id,nome_cognome,anno_nascita,ruolo,telefono_genitore,note) VALUES (?,?,?,?,?,?)', [categoria_id, nome_cognome, anno_nascita||null, ruolo||'Da assegnare', telefono_genitore||null, note||null]);
+    res.json({ id: r.insertId });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.put('/api/giocatori/:id', async (req, res) => {
-  const { nome_cognome, anno_nascita, ruolo, telefono_genitore, note, attivo } = req.body;
-  await db.query('UPDATE giocatori SET nome_cognome=?,anno_nascita=?,ruolo=?,telefono_genitore=?,note=?,attivo=? WHERE id=?', [nome_cognome, anno_nascita||null, ruolo||'Da assegnare', telefono_genitore||null, note||null, attivo??1, req.params.id]);
-  res.json({ updated: req.params.id });
+  try {
+    const { nome_cognome, anno_nascita, ruolo, telefono_genitore, note, attivo } = req.body;
+    await db.query('UPDATE giocatori SET nome_cognome=?,anno_nascita=?,ruolo=?,telefono_genitore=?,note=?,attivo=? WHERE id=?', [nome_cognome, anno_nascita||null, ruolo||'Da assegnare', telefono_genitore||null, note||null, attivo??1, req.params.id]);
+    res.json({ updated: req.params.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.delete('/api/giocatori/:id', async (req, res) => {
-  await db.query('DELETE FROM giocatori WHERE id=?', [req.params.id]);
-  res.json({ deleted: req.params.id });
+  try {
+    await db.query('DELETE FROM giocatori WHERE id=?', [req.params.id]);
+    res.json({ deleted: req.params.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // ALLENAMENTI
 app.get('/api/allenamenti', async (req, res) => {
-  const { categoria_id } = req.query;
-  const [rows] = categoria_id
-    ? await db.query('SELECT * FROM allenamenti WHERE categoria_id=? ORDER BY data DESC', [categoria_id])
-    : await db.query('SELECT * FROM allenamenti ORDER BY data DESC');
-  res.json(rows);
+  try {
+    const { categoria_id } = req.query;
+    const [rows] = categoria_id
+      ? await db.query('SELECT * FROM allenamenti WHERE categoria_id=? ORDER BY data DESC', [categoria_id])
+      : await db.query('SELECT * FROM allenamenti ORDER BY data DESC');
+    res.json(rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/allenamenti', async (req, res) => {
-  const { categoria_id, titolo, data, durata_minuti, obiettivi, esercizi, note } = req.body;
-  const [r] = await db.query('INSERT INTO allenamenti (categoria_id,titolo,data,durata_minuti,obiettivi,esercizi,note) VALUES (?,?,?,?,?,?,?)', [categoria_id, titolo, data||null, durata_minuti||null, obiettivi||null, esercizi||null, note||null]);
-  res.json({ id: r.insertId });
+  try {
+    const { categoria_id, titolo, data, durata_minuti, obiettivi, esercizi, note } = req.body;
+    const [r] = await db.query('INSERT INTO allenamenti (categoria_id,titolo,data,durata_minuti,obiettivi,esercizi,note) VALUES (?,?,?,?,?,?,?)', [categoria_id, titolo, data||null, durata_minuti||null, obiettivi||null, esercizi||null, note||null]);
+    res.json({ id: r.insertId });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.put('/api/allenamenti/:id', async (req, res) => {
-  const { titolo, data, durata_minuti, obiettivi, esercizi, note } = req.body;
-  await db.query('UPDATE allenamenti SET titolo=?,data=?,durata_minuti=?,obiettivi=?,esercizi=?,note=? WHERE id=?', [titolo, data||null, durata_minuti||null, obiettivi||null, esercizi||null, note||null, req.params.id]);
-  res.json({ updated: req.params.id });
+  try {
+    const { titolo, data, durata_minuti, obiettivi, esercizi, note } = req.body;
+    await db.query('UPDATE allenamenti SET titolo=?,data=?,durata_minuti=?,obiettivi=?,esercizi=?,note=? WHERE id=?', [titolo, data||null, durata_minuti||null, obiettivi||null, esercizi||null, note||null, req.params.id]);
+    res.json({ updated: req.params.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.delete('/api/allenamenti/:id', async (req, res) => {
-  await db.query('DELETE FROM allenamenti WHERE id=?', [req.params.id]);
-  res.json({ deleted: req.params.id });
+  try {
+    await db.query('DELETE FROM allenamenti WHERE id=?', [req.params.id]);
+    res.json({ deleted: req.params.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // SESSIONI
 app.get('/api/sessioni', async (req, res) => {
-  const { categoria_id } = req.query;
-  const [rows] = await db.query('SELECT s.*, COUNT(p.id) as totale, SUM(p.presente) as presenti FROM sessioni_presenze s LEFT JOIN presenze p ON p.sessione_id=s.id WHERE s.categoria_id=? GROUP BY s.id ORDER BY s.data DESC', [categoria_id]);
-  res.json(rows);
+  try {
+    const { categoria_id } = req.query;
+    const [rows] = await db.query('SELECT s.*, COUNT(p.id) as totale, SUM(p.presente) as presenti FROM sessioni_presenze s LEFT JOIN presenze p ON p.sessione_id=s.id WHERE s.categoria_id=? GROUP BY s.id ORDER BY s.data DESC', [categoria_id]);
+    res.json(rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/sessioni', async (req, res) => {
-  const { categoria_id, data, tipo, note } = req.body;
-  const [r] = await db.query('INSERT INTO sessioni_presenze (categoria_id,data,tipo,note) VALUES (?,?,?,?)', [categoria_id, data, tipo||'Allenamento', note||null]);
-  const sessId = r.insertId;
-  const [giocatori] = await db.query('SELECT id FROM giocatori WHERE categoria_id=? AND attivo=1', [categoria_id]);
-  for (const g of giocatori) {
-    await db.query('INSERT INTO presenze (sessione_id,giocatore_id,presente) VALUES (?,?,0)', [sessId, g.id]);
-  }
-  res.json({ id: sessId });
+  try {
+    const { categoria_id, data, tipo, note } = req.body;
+    const [r] = await db.query('INSERT INTO sessioni_presenze (categoria_id,data,tipo,note) VALUES (?,?,?,?)', [categoria_id, data, tipo||'Allenamento', note||null]);
+    const sessId = r.insertId;
+    const [giocatori] = await db.query('SELECT id FROM giocatori WHERE categoria_id=? AND attivo=1', [categoria_id]);
+    for (const g of giocatori) {
+      await db.query('INSERT INTO presenze (sessione_id,giocatore_id,presente) VALUES (?,?,0)', [sessId, g.id]);
+    }
+    res.json({ id: sessId });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.delete('/api/sessioni/:id', async (req, res) => {
-  await db.query('DELETE FROM sessioni_presenze WHERE id=?', [req.params.id]);
-  res.json({ deleted: req.params.id });
+  try {
+    await db.query('DELETE FROM sessioni_presenze WHERE id=?', [req.params.id]);
+    res.json({ deleted: req.params.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // PRESENZE
 app.get('/api/presenze', async (req, res) => {
-  const { sessione_id } = req.query;
-  const [rows] = await db.query('SELECT p.*, g.nome_cognome, g.ruolo FROM presenze p JOIN giocatori g ON g.id=p.giocatore_id WHERE p.sessione_id=? ORDER BY g.nome_cognome', [sessione_id]);
-  res.json(rows);
+  try {
+    const { sessione_id } = req.query;
+    const [rows] = await db.query('SELECT p.*, g.nome_cognome, g.ruolo FROM presenze p JOIN giocatori g ON g.id=p.giocatore_id WHERE p.sessione_id=? ORDER BY g.nome_cognome', [sessione_id]);
+    res.json(rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.put('/api/presenze', async (req, res) => {
-  const { sessione_id, giocatore_id, presente } = req.body;
-  await db.query('UPDATE presenze SET presente=? WHERE sessione_id=? AND giocatore_id=?', [presente?1:0, sessione_id, giocatore_id]);
-  res.json({ updated: true });
+  try {
+    const { sessione_id, giocatore_id, presente } = req.body;
+    await db.query('UPDATE presenze SET presente=? WHERE sessione_id=? AND giocatore_id=?', [presente?1:0, sessione_id, giocatore_id]);
+    res.json({ updated: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // PARTITE
 app.get('/api/partite', async (req, res) => {
-  const { categoria_id } = req.query;
-  const [rows] = categoria_id
-    ? await db.query('SELECT * FROM partite WHERE categoria_id=? ORDER BY data DESC', [categoria_id])
-    : await db.query('SELECT * FROM partite ORDER BY data DESC');
-  res.json(rows);
+  try {
+    const { categoria_id } = req.query;
+    const [rows] = categoria_id
+      ? await db.query('SELECT * FROM partite WHERE categoria_id=? ORDER BY data DESC', [categoria_id])
+      : await db.query('SELECT * FROM partite ORDER BY data DESC');
+    res.json(rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/partite', async (req, res) => {
-  const { categoria_id, avversario, data, casa_trasferta, gol_fatti, gol_subiti, note } = req.body;
-  const gf = gol_fatti !== undefined && gol_fatti !== '' ? parseInt(gol_fatti) : null;
-  const gs = gol_subiti !== undefined && gol_subiti !== '' ? parseInt(gol_subiti) : null;
-  const risultato = gf !== null && gs !== null ? (gf > gs ? 'Vittoria' : gf < gs ? 'Sconfitta' : 'Pareggio') : null;
-  const [r] = await db.query('INSERT INTO partite (categoria_id,avversario,data,casa_trasferta,gol_fatti,gol_subiti,risultato,note) VALUES (?,?,?,?,?,?,?,?)', [categoria_id, avversario, data||null, casa_trasferta||'Casa', gf, gs, risultato, note||null]);
-  res.json({ id: r.insertId, risultato });
+  try {
+    const { categoria_id, avversario, data, casa_trasferta, gol_fatti, gol_subiti, note } = req.body;
+    const gf = gol_fatti !== undefined && gol_fatti !== '' ? parseInt(gol_fatti) : null;
+    const gs = gol_subiti !== undefined && gol_subiti !== '' ? parseInt(gol_subiti) : null;
+    const risultato = gf !== null && gs !== null ? (gf > gs ? 'Vittoria' : gf < gs ? 'Sconfitta' : 'Pareggio') : null;
+    const [r] = await db.query('INSERT INTO partite (categoria_id,avversario,data,casa_trasferta,gol_fatti,gol_subiti,risultato,note) VALUES (?,?,?,?,?,?,?,?)', [categoria_id, avversario, data||null, casa_trasferta||'Casa', gf, gs, risultato, note||null]);
+    res.json({ id: r.insertId, risultato });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.put('/api/partite/:id', async (req, res) => {
-  const { avversario, data, casa_trasferta, gol_fatti, gol_subiti, note } = req.body;
-  const gf = gol_fatti !== undefined && gol_fatti !== '' ? parseInt(gol_fatti) : null;
-  const gs = gol_subiti !== undefined && gol_subiti !== '' ? parseInt(gol_subiti) : null;
-  const risultato = gf !== null && gs !== null ? (gf > gs ? 'Vittoria' : gf < gs ? 'Sconfitta' : 'Pareggio') : null;
-  await db.query('UPDATE partite SET avversario=?,data=?,casa_trasferta=?,gol_fatti=?,gol_subiti=?,risultato=?,note=? WHERE id=?', [avversario, data||null, casa_trasferta||'Casa', gf, gs, risultato, note||null, req.params.id]);
-  res.json({ updated: req.params.id });
+  try {
+    const { avversario, data, casa_trasferta, gol_fatti, gol_subiti, note } = req.body;
+    const gf = gol_fatti !== undefined && gol_fatti !== '' ? parseInt(gol_fatti) : null;
+    const gs = gol_subiti !== undefined && gol_subiti !== '' ? parseInt(gol_subiti) : null;
+    const risultato = gf !== null && gs !== null ? (gf > gs ? 'Vittoria' : gf < gs ? 'Sconfitta' : 'Pareggio') : null;
+    await db.query('UPDATE partite SET avversario=?,data=?,casa_trasferta=?,gol_fatti=?,gol_subiti=?,risultato=?,note=? WHERE id=?', [avversario, data||null, casa_trasferta||'Casa', gf, gs, risultato, note||null, req.params.id]);
+    res.json({ updated: req.params.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.delete('/api/partite/:id', async (req, res) => {
-  await db.query('DELETE FROM partite WHERE id=?', [req.params.id]);
-  res.json({ deleted: req.params.id });
+  try {
+    await db.query('DELETE FROM partite WHERE id=?', [req.params.id]);
+    res.json({ deleted: req.params.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // HOME
