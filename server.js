@@ -7,8 +7,8 @@ app.use(express.json());
 app.use(express.static('.'));
 
 const db = mysql.createPool({
-  host: process.env.MYSQLHOST || 'kodama.proxy.rlwy.net',
-  port: parseInt(process.env.MYSQLPORT || '48095'),
+  host: process.env.MYSQLHOST || 'mysql.railway.internal',
+  port: parseInt(process.env.MYSQLPORT || '3306'),
   user: process.env.MYSQLUSER || 'root',
   password: process.env.MYSQLPASSWORD || 'RQnEDOLRVYIVeeFfSoNGIzQStFgeMSCt',
   database: process.env.MYSQLDATABASE || 'railway',
@@ -205,10 +205,5 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const port = parseInt(process.env.PORT) || 8080;
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server avviato su porta ${port}`);
-}).on('error', (err) => {
-  console.error('Errore server:', err);
-  process.exit(1);
-});
+const port = process.env.PORT || 8080;
+app.listen(port, '0.0.0.0', () => console.log(`Server avviato su porta ${port}`));
