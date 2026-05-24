@@ -8,11 +8,14 @@ app.use(express.static('.'));
 
 const db = mysql.createPool({
   host: process.env.MYSQLHOST || 'kodama.proxy.rlwy.net',
-  port: process.env.MYSQLPORT || 48095,
+  port: parseInt(process.env.MYSQLPORT || '48095'),
   user: process.env.MYSQLUSER || 'root',
   password: process.env.MYSQLPASSWORD || 'RQnEDOLRVYIVeeFfSoNGIzQStFgeMSCt',
   database: process.env.MYSQLDATABASE || 'railway',
-  waitForConnections: true
+  waitForConnections: true,
+  connectionLimit: 10,
+  connectTimeout: 30000,
+  acquireTimeout: 30000
 });
 
 // INSTALL
