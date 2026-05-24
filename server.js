@@ -205,5 +205,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const port = process.env.PORT || 8080;
-app.listen(port, '0.0.0.0', () => console.log(`Server avviato su porta ${port}`));
+const port = parseInt(process.env.PORT) || 8080;
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server avviato su porta ${port}`);
+}).on('error', (err) => {
+  console.error('Errore server:', err);
+  process.exit(1);
+});
