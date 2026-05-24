@@ -1,8 +1,0 @@
-[variables]
-PHP_VERSION = "8.2"
-
-[phases.setup]
-nixPkgs = ["php82", "php82Extensions.pdo_mysql", "php82Extensions.mysqli"]
-
-[start]
-cmd = "php-fpm82 -D && caddy run --config /app/Caddyfile"
