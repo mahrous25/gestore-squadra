@@ -1,8 +1,8 @@
+[variables]
+PHP_VERSION = "8.1"
+
 [phases.build]
 cmds = []
 
-[phases.install]
-cmds = []
-
 [start]
-cmd = "php -S 0.0.0.0:$PORT"
+cmd = "php -S 0.0.0.0:$PORT -t ."
