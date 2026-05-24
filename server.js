@@ -138,16 +138,16 @@ app.get('/api/partite', async (req, res) => {
 });
 app.post('/api/partite', async (req, res) => {
   const { categoria_id, avversario, data, casa_trasferta, gol_fatti, gol_subiti, note } = req.body;
-  const gf = gol_fatti !== undefined ? gol_fatti : null;
-  const gs = gol_subiti !== undefined ? gol_subiti : null;
+  const gf = gol_fatti !== undefined && gol_fatti !== '' ? parseInt(gol_fatti) : null;
+  const gs = gol_subiti !== undefined && gol_subiti !== '' ? parseInt(gol_subiti) : null;
   const risultato = gf !== null && gs !== null ? (gf > gs ? 'Vittoria' : gf < gs ? 'Sconfitta' : 'Pareggio') : null;
   const [r] = await db.query('INSERT INTO partite (categoria_id,avversario,data,casa_trasferta,gol_fatti,gol_subiti,risultato,note) VALUES (?,?,?,?,?,?,?,?)', [categoria_id, avversario, data||null, casa_trasferta||'Casa', gf, gs, risultato, note||null]);
   res.json({ id: r.insertId, risultato });
 });
 app.put('/api/partite/:id', async (req, res) => {
   const { avversario, data, casa_trasferta, gol_fatti, gol_subiti, note } = req.body;
-  const gf = gol_fatti !== undefined ? gol_fatti : null;
-  const gs = gol_subiti !== undefined ? gol_subiti : null;
+  const gf = gol_fatti !== undefined && gol_fatti !== '' ? parseInt(gol_fatti) : null;
+  const gs = gol_subiti !== undefined && gol_subiti !== '' ? parseInt(gol_subiti) : null;
   const risultato = gf !== null && gs !== null ? (gf > gs ? 'Vittoria' : gf < gs ? 'Sconfitta' : 'Pareggio') : null;
   await db.query('UPDATE partite SET avversario=?,data=?,casa_trasferta=?,gol_fatti=?,gol_subiti=?,risultato=?,note=? WHERE id=?', [avversario, data||null, casa_trasferta||'Casa', gf, gs, risultato, note||null, req.params.id]);
   res.json({ updated: req.params.id });
@@ -162,4 +162,5 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => console.log(`Server avviato su porta ${PORT}`));
+const port = process.env.PORT || 8080;
+app.listen(port, '0.0.0.0', () => console.log(`Server avviato su porta ${port}`));
